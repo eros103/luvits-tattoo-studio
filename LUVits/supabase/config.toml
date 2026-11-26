@@ -1,0 +1,10 @@
+project_id = "luvits"
+
+[functions.create-booking-uploads]
+verify_jwt = true
+
+[functions.submit-booking]
+verify_jwt = true
+
+[functions.admin-reference-links]
+verify_jwt = true

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#11100f">
+    <title>Studio Admin — LUVits</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="../supabase-config.js" defer></script>
+    <script src="admin.js" defer></script>
+</head>
+<body class="admin-body">
+    <header class="admin-header">
+        <a class="admin-logo" href="../luvits.html">LUVits</a>
+        <p>Private studio <span aria-hidden="true">·</span> Admin</p>
+        <a class="admin-return" href="../luvits.html">Return to site</a>
+    </header>
+
+    <main class="admin-shell">
+        <section class="admin-auth" id="admin-login" aria-labelledby="admin-login-title">
+            <p class="section-label">Authorized studio staff</p>
+            <h1 id="admin-login-title">Administrator sign in</h1>
+            <p class="admin-intro">Sign in with the studio administrator account to review booking requests.</p>
+            <form id="admin-login-form">
+                <label class="admin-field">
+                    <span>Email</span>
+                    <input type="email" name="email" autocomplete="username" required>
+                </label>
+                <label class="admin-field">
+                    <span>Password</span>
+                    <input type="password" name="password" autocomplete="current-password" required>
+                </label>
+                <p class="admin-message" role="status" aria-live="polite" data-admin-login-message></p>
+                <button class="admin-button" type="submit">Sign in</button>
+            </form>
+        </section>
+
+        <section class="admin-dashboard" id="admin-dashboard" aria-labelledby="admin-title" hidden>
+            <div class="admin-title-row">
+                <div>
+                    <p class="section-label">Studio management</p>
+                    <h1 id="admin-title">Booking requests</h1>
+                </div>
+                <button class="admin-button admin-button-quiet" type="button" data-admin-sign-out>Sign out</button>
+            </div>
+
+            <p class="admin-message" role="status" aria-live="polite" data-admin-dashboard-message></p>
+
+            <div class="admin-stats" aria-label="Booking overview">
+                <article><span>Total requests</span><strong data-stat-total>0</strong></article>
+                <article><span>New</span><strong data-stat-new>0</strong></article>
+                <article><span>Pending</span><strong data-stat-pending>0</strong></article>
+                <article><span>Confirmed</span><strong data-stat-confirmed>0</strong></article>
+                <article><span>Completed</span><strong data-stat-completed>0</strong></article>
+            </div>
+
+            <div class="admin-filters">
+                <label class="admin-field">
+                    <span>Search name or WhatsApp</span>
+                    <input type="search" data-booking-search placeholder="Search requests">
+                </label>
+                <label class="admin-field">
+                    <span>Status</span>
+                    <select data-booking-status-filter>
+                        <option value="">All statuses</option>
+                        <option>New</option>
+                        <option>Under Review</option>
+                        <option>Contacted</option>
+                        <option>Consultation Scheduled</option>
+                        <option>Confirmed</option>
+                        <option>Completed</option>
+                        <option>Cancelled</option>
+                    </select>
+                </label>
+                <label class="admin-field">
+                    <span>Appointment date (IST)</span>
+                    <input type="date" data-booking-date-filter>
+                </label>
+                <button class="admin-button admin-button-quiet" type="button" data-booking-refresh>Refresh</button>
+            </div>
+
+            <div class="booking-list" data-booking-list aria-live="polite">
+                <p class="empty-state">Loading booking requests…</p>
+            </div>
+        </section>
+    </main>
+
+    <dialog class="admin-detail-dialog" id="admin-booking-detail" aria-labelledby="detail-title">
+        <div class="detail-frame">
+            <button class="detail-close" type="button" aria-label="Close booking details" data-detail-close>&times;</button>
+            <p class="section-label">Booking details</p>
+            <h2 id="detail-title">Request</h2>
+            <p class="admin-message" role="status" aria-live="polite" data-detail-message></p>
+            <div class="detail-content" data-detail-content></div>
+            <section class="detail-images" aria-labelledby="reference-title">
+                <h3 id="reference-title">Private reference images</h3>
+                <div class="detail-image-grid" data-detail-images></div>
+            </section>
+            <form class="booking-admin-form" data-booking-admin-form>
+                <h3>Studio follow-up</h3>
+                <label class="admin-field">
+                    <span>Booking status</span>
+                    <select name="status" required>
+                        <option>New</option>
+                        <option>Under Review</option>
+                        <option>Contacted</option>
+                        <option>Consultation Scheduled</option>
+                        <option>Confirmed</option>
+                        <option>Completed</option>
+                        <option>Cancelled</option>
+                    </select>
+                </label>
+                <div class="detail-schedule">
+                    <label class="admin-field">
+                        <span>Appointment date (IST)</span>
+                        <input type="date" name="scheduledDate">
+                    </label>
+                    <label class="admin-field">
+                        <span>Appointment time (IST)</span>
+                        <input type="time" name="scheduledTime">
+                    </label>
+                </div>
+                <label class="admin-field">
+                    <span>Private admin notes</span>
+                    <textarea name="adminNotes" rows="4" maxlength="4000"></textarea>
+                </label>
+                <p class="admin-message" role="status" aria-live="polite" data-save-message></p>
+                <button class="admin-button" type="submit" data-save-booking>Save changes</button>
+            </form>
+        </div>
+    </dialog>
+</body>
+</html>
