@@ -23,7 +23,7 @@ html {
 }
 
 body {
-    min-width: 320px;
+    min-width: 0;
     margin: 0;
     background: var(--color-ink);
     color: var(--color-ivory);
@@ -58,11 +58,13 @@ button:focus-visible {
 }
 
 .navbar {
+    position: relative;
     width: min(100% - 2 * var(--page-gutter), var(--page-width));
     min-height: 82px;
     margin: 0 auto;
     display: flex;
     align-items: center;
+    gap: clamp(16px, 2vw, 28px);
 }
 
 .logo,
@@ -81,16 +83,18 @@ button:focus-visible {
 }
 
 .nav-menu {
-    margin-left: auto;
+    flex: 1;
+    margin-left: 0;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: clamp(20px, 2.8vw, 38px);
 }
 
 .nav-links {
     display: flex;
     align-items: center;
-    gap: clamp(24px, 3.4vw, 52px);
+    gap: clamp(18px, 2.5vw, 38px);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -169,7 +173,8 @@ button:focus-visible {
 
 .nav-book {
     min-height: 43px;
-    margin-left: clamp(26px, 4vw, 58px);
+    flex: 0 0 auto;
+    margin-left: 0;
     padding: 0 22px;
     display: inline-flex;
     align-items: center;
@@ -199,24 +204,23 @@ button:focus-visible {
 .hero {
     position: relative;
     min-height: 100svh;
-    padding: 142px 24px 112px;
+    padding: 130px 24px 100px;
     display: grid;
-    place-items: center;
+    place-items: center start;
     overflow: hidden;
     isolation: isolate;
-    background-color: #211f1c;
     background-image:
-        linear-gradient(90deg, rgba(12, 11, 10, 0.7), rgba(12, 11, 10, 0.56) 50%, rgba(12, 11, 10, 0.7)),
-        linear-gradient(180deg, rgba(12, 11, 10, 0.42), rgba(12, 11, 10, 0.62)),
-        url("backround.jpg");
-    background-position: center, center, center 48%;
-    background-size: cover;
+        linear-gradient(rgba(12, 11, 10, 0.2), rgba(12, 11, 10, 0.2)),
+        url("background.jpeg");
+    background-position: center 48%, center 48%;
+    background-size: cover, cover;
     background-repeat: no-repeat;
-    text-align: center;
+    text-align: left;
 }
 
 .hero-content {
-    width: min(100%, 840px);
+    width: min(48vw, 650px);
+    margin-left: clamp(20px, 5vw, 72px);
     animation: hero-arrive 900ms ease both;
 }
 
@@ -234,7 +238,7 @@ button:focus-visible {
 .hero-brand {
     margin: 18px 0 0;
     font-family: var(--font-heading);
-    font-size: clamp(82px, 15vw, 172px);
+    font-size: clamp(88px, 11vw, 154px);
     font-weight: 400;
     letter-spacing: -0.04em;
     line-height: 0.88;
@@ -280,7 +284,7 @@ button:focus-visible {
     margin-top: 27px;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     flex-wrap: wrap;
     gap: 14px 28px;
 }
@@ -337,12 +341,6 @@ button:focus-visible {
     margin: 0;
     padding-inline: var(--page-gutter);
     background-color: var(--color-ink);
-    background-image:
-        linear-gradient(rgba(17, 16, 15, 0.66), rgba(17, 16, 15, 0.66)),
-        url("second.bg.jpg.jpg");
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-size: cover;
     padding-block: clamp(100px, 14vw, 180px);
 }
 
@@ -412,11 +410,57 @@ button:focus-visible {
     letter-spacing: 0.12em;
 }
 
-.gallery {
-    padding-top: 84px;
-    padding-bottom: 120px;
-    border-top: 1px solid rgba(232, 224, 210, 0.12);
+.experience {
+    padding: clamp(90px, 12vw, 150px) var(--page-gutter);
+    border-top: 1px solid rgba(232, 224, 210, 0.1);
+    border-bottom: 1px solid rgba(232, 224, 210, 0.1);
+    background: #151412;
     text-align: center;
+}
+
+.experience-inner {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.experience h2 {
+    margin: 28px 0 0;
+    font-family: var(--font-heading);
+    font-size: clamp(54px, 8.5vw, 108px);
+    font-weight: 400;
+    letter-spacing: -0.035em;
+    line-height: 0.94;
+}
+
+.experience h2 span,
+.experience h2 em {
+    display: block;
+}
+
+.experience h2 em {
+    color: var(--color-muted);
+    font-style: normal;
+}
+
+.gallery {
+    width: 100%;
+    padding: 90px var(--page-gutter) 110px;
+    border-top: 1px solid rgba(232, 224, 210, 0.1);
+    background-color: #11100f;
+    background-image: none;
+    text-align: left;
+}
+
+.gallery-inner {
+    width: min(100%, var(--page-width));
+    margin: 0 auto;
+}
+
+.gallery-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 36px;
 }
 
 .gallery h2 {
@@ -424,29 +468,212 @@ button:focus-visible {
     font-size: clamp(48px, 6vw, 70px);
 }
 
-.gallery-note {
-    min-height: 250px;
-    margin-top: 48px;
-    display: grid;
-    place-content: center;
-    gap: 12px;
-    border: 1px solid rgba(232, 224, 210, 0.12);
-    background:
-        radial-gradient(ellipse at center, rgba(139, 30, 45, 0.07), transparent 58%),
-        var(--color-panel);
-}
-
-.gallery-mark {
-    color: rgba(139, 30, 45, 0.5);
-    font-family: var(--font-heading);
-    font-size: 50px;
-}
-
-.gallery-note p {
-    margin: 0;
+.gallery-intro {
+    max-width: 300px;
+    margin: 0 0 8px;
     color: var(--color-muted);
     font-size: 13px;
-    letter-spacing: 0.04em;
+    line-height: 1.8;
+}
+
+.gallery-carousel {
+    margin-top: 42px;
+}
+
+.gallery-viewport {
+    width: 100%;
+    overflow: hidden;
+    touch-action: pan-y;
+}
+
+.gallery-track {
+    --gallery-visible: 3;
+    width: 100%;
+    display: flex;
+    gap: 0;
+    transition: transform 420ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    will-change: transform;
+}
+
+.gallery-slide {
+    flex: 0 0 calc(100% / var(--gallery-visible));
+    min-width: 0;
+    margin: 0;
+}
+
+.gallery-image-open {
+    width: 100%;
+    height: clamp(320px, 44vw, 620px);
+    padding: 0;
+    display: block;
+    overflow: hidden;
+    border: 0;
+    background: #090909;
+    cursor: zoom-in;
+}
+
+.gallery-image-open img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: center;
+    filter: none;
+}
+
+.gallery-controls {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+}
+
+.gallery-arrow,
+.lightbox-arrow,
+.lightbox-close {
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(232, 224, 210, 0.35);
+    background: transparent;
+    color: var(--color-ivory);
+    cursor: pointer;
+    transition: color var(--ease), border-color var(--ease), background-color var(--ease);
+}
+
+.gallery-arrow {
+    width: 44px;
+    height: 44px;
+}
+
+.gallery-arrow:hover,
+.lightbox-arrow:hover,
+.lightbox-close:hover {
+    border-color: var(--color-ivory);
+    background-color: rgba(232, 224, 210, 0.08);
+}
+
+.gallery-arrow svg,
+.lightbox-arrow svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.4;
+}
+
+.gallery-counter,
+.lightbox-counter {
+    min-width: 68px;
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-align: center;
+}
+
+.gallery-lightbox {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: clamp(12px, 3vw, 40px);
+    grid-template: 48px minmax(0, 1fr) 24px / 56px minmax(0, 1fr) 56px;
+    align-items: center;
+    justify-items: center;
+    gap: 12px;
+    border: 0;
+    background: rgba(8, 8, 8, 0.97);
+    color: var(--color-ivory);
+}
+
+.gallery-lightbox[open] {
+    display: grid;
+}
+
+.gallery-lightbox::backdrop {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.lightbox-close {
+    grid-area: 1 / 3;
+    width: 42px;
+    height: 42px;
+    font-size: 26px;
+    line-height: 1;
+}
+
+.lightbox-previous {
+    grid-area: 2 / 1;
+}
+
+.lightbox-next {
+    grid-area: 2 / 3;
+}
+
+.lightbox-arrow {
+    width: 44px;
+    height: 44px;
+}
+
+.lightbox-stage {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    grid-area: 2 / 2;
+}
+
+.lightbox-stage img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    display: block;
+    object-fit: contain;
+}
+
+.lightbox-counter {
+    grid-area: 3 / 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gallery-track {
+        transition: none;
+    }
+}
+
+.reviews {
+    padding-top: clamp(70px, 9vw, 110px);
+    padding-bottom: clamp(80px, 10vw, 120px);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.8fr);
+    align-items: center;
+    gap: 48px;
+    border-top: 1px solid rgba(232, 224, 210, 0.1);
+}
+
+.reviews h2 {
+    margin: 10px 0 0;
+    font-family: var(--font-heading);
+    font-size: clamp(48px, 6vw, 70px);
+    font-weight: 400;
+    letter-spacing: -0.035em;
+}
+
+.reviews-placeholder {
+    margin: 0;
+    padding: 20px 0 20px 24px;
+    border-left: 1px solid rgba(232, 224, 210, 0.28);
+    color: var(--color-muted);
+    font-size: 13px;
+    line-height: 1.8;
 }
 
 .booking {
@@ -465,6 +692,25 @@ button:focus-visible {
     color: var(--color-muted);
     font-size: 14px;
     line-height: 1.8;
+}
+
+.booking-contacts {
+    margin: 38px auto 0;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px 32px;
+}
+
+.booking-contacts a {
+    color: var(--color-muted);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    transition: color var(--ease);
+}
+
+.booking-contacts a:hover {
+    color: var(--color-ivory);
 }
 
 .site-footer {
@@ -650,7 +896,18 @@ button:focus-visible {
     }
 }
 
-@media (max-width: 760px) {
+html.reveal-enabled [data-reveal] {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 700ms ease, transform 700ms ease;
+}
+
+html.reveal-enabled [data-reveal].is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (max-width: 900px) {
     html {
         scroll-padding-top: 78px;
     }
@@ -698,9 +955,11 @@ button:focus-visible {
         right: 0;
         left: 0;
         padding: 14px var(--page-gutter) 24px;
+        flex: none;
         display: none;
         align-items: stretch;
         flex-direction: column;
+        justify-content: flex-start;
         gap: 16px;
         background: rgba(17, 16, 15, 0.98);
         border-bottom: 1px solid rgba(232, 224, 210, 0.12);
@@ -746,11 +1005,20 @@ button:focus-visible {
 
     .hero {
         min-height: 100svh;
-        padding: 125px 24px 105px;
+        padding: 116px 24px 92px;
+        place-items: start;
+        background-position: left top, left top;
+        background-size: cover, auto 130%;
     }
 
-    .hero {
-        background-position: center, center, 43% center;
+    .hero-content {
+        width: min(100%, 270px);
+        margin-left: 0;
+        text-align: left;
+    }
+
+    .hero-socials {
+        justify-content: flex-start;
     }
 
     .about {
@@ -758,13 +1026,49 @@ button:focus-visible {
     }
 
     .gallery {
-        padding-top: 72px;
-        padding-bottom: 84px;
+        padding-block: 72px 84px;
     }
 
-    .gallery-note {
-        min-height: 210px;
-        margin-top: 34px;
+    .gallery-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .gallery-carousel {
+        margin-top: 32px;
+    }
+
+    .gallery-track {
+        --gallery-visible: 2;
+    }
+
+    .gallery-image-open {
+        height: clamp(280px, 52vw, 520px);
+    }
+
+    .gallery-lightbox {
+        grid-template: 44px minmax(0, 1fr) 24px / 40px minmax(0, 1fr) 40px;
+        gap: 8px;
+    }
+
+    .lightbox-arrow {
+        width: 40px;
+        height: 40px;
+    }
+
+    .gallery-arrow {
+        width: 42px;
+        height: 42px;
+    }
+
+    .reviews {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 24px;
+    }
+
+    .reviews-placeholder {
+        max-width: 430px;
     }
 
     .footer-inner {
@@ -813,8 +1117,8 @@ button:focus-visible {
 
     .hero-description {
         max-width: 290px;
-        margin-right: auto;
-        margin-left: auto;
+        margin-right: 0;
+        margin-left: 0;
         line-height: 1.7;
     }
 
@@ -831,6 +1135,11 @@ button:focus-visible {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+    }
+
+    html.reveal-enabled [data-reveal] {
+        opacity: 1;
+        transform: none;
     }
 }
 

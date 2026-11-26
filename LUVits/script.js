@@ -28,7 +28,7 @@ if (menuToggle instanceof HTMLButtonElement && navMenu instanceof HTMLElement) {
         }
     });
 
-    window.matchMedia("(min-width: 761px)").addEventListener("change", closeMenu);
+    window.matchMedia("(min-width: 901px)").addEventListener("change", closeMenu);
 }
 
 const bookingDialog = document.querySelector("#booking-dialog");
@@ -217,6 +217,25 @@ if (bookingDialog instanceof HTMLDialogElement && bookingForm instanceof HTMLFor
             setFiles(Array.from(referenceInput.files ?? []), "reference");
             referenceInput.value = "";
         });
+    }
+
+    const revealElements = document.querySelectorAll("[data-reveal]");
+    if (
+        revealElements.length > 0
+        && "IntersectionObserver" in window
+        && !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+        const revealObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("is-visible");
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12 });
+
+        document.documentElement.classList.add("reveal-enabled");
+        revealElements.forEach((element) => revealObserver.observe(element));
     }
     if (placementInput instanceof HTMLInputElement) {
         placementInput.addEventListener("change", () => {
@@ -573,4 +592,289 @@ if (bookingDialog instanceof HTMLDialogElement && bookingForm instanceof HTMLFor
             submitButton.disabled = false;
         }
     });
+}
+
+const galleryCarousel = document.querySelector("[data-gallery-carousel]");
+const galleryViewport = document.querySelector("[data-gallery-viewport]");
+const galleryLightbox = document.querySelector("[data-gallery-lightbox]");
+
+if (
+    galleryCarousel instanceof HTMLElement
+    && galleryViewport instanceof HTMLElement
+    && galleryLightbox instanceof HTMLDialogElement
+) {
+    const galleryTrack = galleryViewport.querySelector(".gallery-track");
+    const gallerySlides = galleryTrack instanceof HTMLElement
+        ? Array.from(galleryTrack.querySelectorAll(".gallery-slide"))
+        : [];
+    const galleryCounter = galleryCarousel.querySelector("[data-gallery-counter]");
+    const galleryPrevious = galleryCarousel.querySelector("[data-gallery-previous]");
+    const galleryNext = galleryCarousel.querySelector("[data-gallery-next]");
+    const lightboxImage = galleryLightbox.querySelector("[data-lightbox-image]");
+    const lightboxCounter = galleryLightbox.querySelector("[data-lightbox-counter]");
+    const lightboxPrevious = galleryLightbox.querySelector("[data-lightbox-previous]");
+    const lightboxNext = galleryLightbox.querySelector("[data-lightbox-next]");
+    const lightboxClose = galleryLightbox.querySelector("[data-lightbox-close]");
+
+    if (
+        galleryTrack instanceof HTMLElement
+        && gallerySlides.length > 0
+        && galleryCounter instanceof HTMLElement
+        && lightboxImage instanceof HTMLImageElement
+        && lightboxCounter instanceof HTMLElement
+    ) {
+        const totalSlides = gallerySlides.length;
+        const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        let visibleCount = window.matchMedia("(min-width: 901px)").matches ? 3 : 2;
+        let activeStart = 0;
+        let lightboxIndex = 0;
+        let lightboxTrigger = null;
+        let isAnimating = false;
+        let transitionTimeout = 0;
+        let resizeFrame = 0;
+        let suppressNextClick = false;
+        let suppressClickTimeout = 0;
+        let swipeStart = null;
+        const pendingDirections = [];
+
+        const wrapIndex = (index) => ((index % totalSlides) + totalSlides) % totalSlides;
+        const formatIndex = (index) => String(index + 1).padStart(2, "0");
+
+        const updateCounter = () => {
+            const first = wrapIndex(activeStart);
+            const last = wrapIndex(activeStart + visibleCount - 1);
+            galleryCounter.textContent = `${formatIndex(first)}–${formatIndex(last)} / ${formatIndex(totalSlides - 1)}`;
+        };
+
+        const updateSlideAccessibility = () => {
+            const visibleSlides = new Set(
+                Array.from({ length: visibleCount }, (_, offset) => wrapIndex(activeStart + offset)),
+            );
+            gallerySlides.forEach((slide, index) => {
+                const button = slide.querySelector("[data-gallery-open]");
+                if (visibleSlides.has(index)) {
+                    slide.removeAttribute("aria-hidden");
+                    slide.removeAttribute("inert");
+                    button?.removeAttribute("tabindex");
+                } else {
+                    slide.setAttribute("aria-hidden", "true");
+                    slide.setAttribute("inert", "");
+                    button?.setAttribute("tabindex", "-1");
+                }
+            });
+        };
+
+        const updateCarouselState = () => {
+            updateCounter();
+            updateSlideAccessibility();
+        };
+
+        const cloneSlide = (slide) => {
+            const clone = slide.cloneNode(true);
+            clone.dataset.galleryClone = "true";
+            clone.setAttribute("aria-hidden", "true");
+            clone.setAttribute("inert", "");
+            clone.querySelectorAll("button, a, [tabindex]").forEach((element) => {
+                element.setAttribute("tabindex", "-1");
+            });
+            return clone;
+        };
+
+        const rebuildTrack = () => {
+            const leadingClones = gallerySlides.slice(-visibleCount).map(cloneSlide);
+            const trailingClones = gallerySlides.slice(0, visibleCount).map(cloneSlide);
+            galleryTrack.replaceChildren(...leadingClones, ...gallerySlides, ...trailingClones);
+            galleryTrack.style.setProperty("--gallery-visible", String(visibleCount));
+        };
+
+        const setSlideWidths = () => {
+            const slideWidth = galleryViewport.getBoundingClientRect().width / visibleCount;
+            galleryTrack.querySelectorAll(".gallery-slide").forEach((slide) => {
+                slide.style.flexBasis = `${slideWidth}px`;
+            });
+        };
+
+        const positionTrack = (animate) => {
+            const firstTrackSlide = galleryTrack.firstElementChild;
+            if (!(firstTrackSlide instanceof HTMLElement)) {
+                return;
+            }
+            const slideWidth = firstTrackSlide.getBoundingClientRect().width;
+            const trackIndex = visibleCount + activeStart;
+            const shouldAnimate = animate && !prefersReducedMotion;
+            galleryTrack.style.transition = shouldAnimate ? "" : "none";
+            galleryTrack.style.transform = `translate3d(${-trackIndex * slideWidth}px, 0, 0)`;
+            if (!shouldAnimate && !prefersReducedMotion) {
+                galleryTrack.getBoundingClientRect();
+                galleryTrack.style.removeProperty("transition");
+            }
+        };
+
+        const finishTransition = () => {
+            if (!isAnimating) {
+                return;
+            }
+            window.clearTimeout(transitionTimeout);
+            isAnimating = false;
+            if (activeStart < 0) {
+                activeStart = totalSlides - 1;
+            } else if (activeStart >= totalSlides) {
+                activeStart = 0;
+            }
+            positionTrack(false);
+            updateCarouselState();
+            const queuedDirection = pendingDirections.shift();
+            if (queuedDirection) {
+                window.requestAnimationFrame(() => moveBy(queuedDirection));
+            }
+        };
+
+        const moveBy = (direction) => {
+            if (isAnimating) {
+                pendingDirections.push(direction);
+                return;
+            }
+            if (prefersReducedMotion) {
+                activeStart = wrapIndex(activeStart + direction);
+                positionTrack(false);
+                updateCarouselState();
+                return;
+            }
+
+            activeStart += direction;
+            isAnimating = true;
+            updateCarouselState();
+            positionTrack(true);
+            window.clearTimeout(transitionTimeout);
+            transitionTimeout = window.setTimeout(finishTransition, 500);
+        };
+
+        const updateLayout = () => {
+            const nextVisibleCount = window.matchMedia("(min-width: 901px)").matches ? 3 : 2;
+            window.clearTimeout(transitionTimeout);
+            isAnimating = false;
+            pendingDirections.length = 0;
+            activeStart = wrapIndex(activeStart);
+            if (visibleCount !== nextVisibleCount) {
+                visibleCount = nextVisibleCount;
+                rebuildTrack();
+            }
+            setSlideWidths();
+            positionTrack(false);
+            updateCarouselState();
+        };
+
+        const updateLightbox = () => {
+            const image = gallerySlides[lightboxIndex]?.querySelector("img");
+            if (!(image instanceof HTMLImageElement)) {
+                return;
+            }
+            lightboxImage.src = image.currentSrc || image.src;
+            lightboxImage.alt = image.alt;
+            lightboxCounter.textContent = `${formatIndex(lightboxIndex)} / ${formatIndex(totalSlides - 1)}`;
+        };
+
+        const moveLightbox = (direction) => {
+            lightboxIndex = wrapIndex(lightboxIndex + direction);
+            updateLightbox();
+        };
+
+        const openLightbox = (index) => {
+            if (!Number.isInteger(index) || index < 0 || index >= totalSlides) {
+                return;
+            }
+            lightboxIndex = index;
+            lightboxTrigger = gallerySlides[index].querySelector("[data-gallery-open]");
+            updateLightbox();
+            galleryLightbox.showModal();
+        };
+
+        galleryTrack.addEventListener("click", (event) => {
+            if (suppressNextClick) {
+                event.preventDefault();
+                suppressNextClick = false;
+                window.clearTimeout(suppressClickTimeout);
+                return;
+            }
+            if (!(event.target instanceof Element)) {
+                return;
+            }
+            const trigger = event.target.closest("[data-gallery-open]");
+            if (trigger) {
+                openLightbox(Number(trigger.getAttribute("data-gallery-index")));
+            }
+        });
+
+        galleryViewport.addEventListener("pointerdown", (event) => {
+            if (event.pointerType === "touch") {
+                swipeStart = { x: event.clientX, y: event.clientY };
+            }
+        });
+        galleryViewport.addEventListener("pointerup", (event) => {
+            if (!swipeStart) {
+                return;
+            }
+            const deltaX = event.clientX - swipeStart.x;
+            const deltaY = event.clientY - swipeStart.y;
+            swipeStart = null;
+            if (Math.abs(deltaX) < 40 || Math.abs(deltaX) <= Math.abs(deltaY)) {
+                return;
+            }
+            suppressNextClick = true;
+            window.clearTimeout(suppressClickTimeout);
+            suppressClickTimeout = window.setTimeout(() => {
+                suppressNextClick = false;
+            }, 400);
+            moveBy(deltaX < 0 ? 1 : -1);
+        });
+        galleryViewport.addEventListener("pointercancel", () => {
+            swipeStart = null;
+        });
+
+        galleryViewport.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+                event.preventDefault();
+                moveBy(event.key === "ArrowRight" ? 1 : -1);
+            }
+        });
+        galleryPrevious?.addEventListener("click", () => moveBy(-1));
+        galleryNext?.addEventListener("click", () => moveBy(1));
+        galleryTrack.addEventListener("transitionend", (event) => {
+            if (event.target === galleryTrack && event.propertyName === "transform") {
+                finishTransition();
+            }
+        });
+        window.addEventListener("resize", () => {
+            window.cancelAnimationFrame(resizeFrame);
+            resizeFrame = window.requestAnimationFrame(updateLayout);
+        }, { passive: true });
+
+        lightboxPrevious?.addEventListener("click", () => moveLightbox(-1));
+        lightboxNext?.addEventListener("click", () => moveLightbox(1));
+        lightboxClose?.addEventListener("click", () => galleryLightbox.close());
+        galleryLightbox.addEventListener("click", (event) => {
+            if (event.target === galleryLightbox) {
+                galleryLightbox.close();
+            }
+        });
+        galleryLightbox.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+                event.preventDefault();
+                moveLightbox(event.key === "ArrowRight" ? 1 : -1);
+            }
+        });
+        galleryLightbox.addEventListener("close", () => {
+            if (lightboxTrigger instanceof HTMLElement && !lightboxTrigger.closest("[inert]")) {
+                lightboxTrigger.focus({ preventScroll: true });
+            } else {
+                galleryViewport.focus({ preventScroll: true });
+            }
+            lightboxTrigger = null;
+        });
+
+        rebuildTrack();
+        setSlideWidths();
+        positionTrack(false);
+        updateCarouselState();
+    }
 }
