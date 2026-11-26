@@ -1,0 +1,8 @@
+[build]
+  command = "mkdir -p dist/admin && cp LUVits/*.{html,css,js,jpg} dist/ && cp LUVits/admin/*.{html,css,js} dist/admin/"
+  publish = "dist"
+
+[[redirects]]
+  from = "/"
+  to = "/luvits.html"
+  status = 200
